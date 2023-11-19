@@ -1,9 +1,19 @@
 def aStarAlgo(start_node, stop_node):
     open_set = {start_node}
     closed_set = set()
-    g = {node: float('inf') for node in Graph_nodes}  # store distance from starting node
+    g = {}  # store distance from starting node
+    parents = {}  # parents contain an adjacency map of all nodes
+    # distance of starting node from itself is zero
     g[start_node] = 0
-    parents = {start_node: start_node}  # parents contain an adjacency map of all nodes
+    # start_node is the root node i.e it has no parent nodes
+    # so start_node is set to its own parent node
+    parents[start_node] = start_node
+
+    def get_neighbors(v):
+        if v in Graph_nodes:
+            return Graph_nodes[v]
+        else:
+            return None
 
     def heuristic(n):
         H_dist = {
@@ -16,15 +26,10 @@ def aStarAlgo(start_node, stop_node):
         }
         return H_dist[n]
 
-    def get_neighbors(v):
-        if v in Graph_nodes:
-            return Graph_nodes[v]
-        else:
-            return None
-
-    while open_set:
+    while len(open_set) > 0:
         n = None
 
+        # node with the lowest f() is found
         for v in open_set:
             if n is None or g[v] + heuristic(v) < g[n] + heuristic(n):
                 n = v
@@ -33,20 +38,7 @@ def aStarAlgo(start_node, stop_node):
             print('Path does not exist!')
             return None
 
-        if n == stop_node:
-            path = []
-            while parents[n] != n:
-                path.append(n)
-                n = parents[n]
-            path.append(start_node)
-            path.reverse()
-            print('Path found:', path)
-            return path
-
-        open_set.remove(n)
-        closed_set.add(n)
-
-        if Graph_nodes[n] is None:
+        if n == stop_node or Graph_nodes[n] is None:
             pass
         else:
             for (m, weight) in get_neighbors(n):
@@ -57,9 +49,26 @@ def aStarAlgo(start_node, stop_node):
                 else:
                     if g[m] > g[n] + weight:
                         g[m] = g[n] + weight
+                        parents[m] = n
+
                         if m in closed_set:
                             closed_set.remove(m)
                             open_set.add(m)
+
+        if n == stop_node:
+            path = []
+            while parents[n] != n:
+                path.append(n)
+                n = parents[n]
+
+            path.append(start_node)
+            path.reverse()
+
+            print('Path found: {}'.format(path))
+            return path
+
+        open_set.remove(n)
+        closed_set.add(n)
 
     print('Path does not exist!')
     return None
